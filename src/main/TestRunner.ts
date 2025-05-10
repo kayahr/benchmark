@@ -21,21 +21,10 @@ export abstract class TestRunner {
         return this;
     }
 
-    protected abstract initOutput(): void;
-
-    protected abstract updateOutput(): void;
-
-    protected abstract error(message: string): void;
-
-    protected abstract status(message: string): void;
+    protected abstract report(runs: number): Promise<void> | void;
 
     public async run(): Promise<void> {
         const numTests = this.tests.length;
-        if (numTests === 0) {
-            this.error("No tests defined");
-            return;
-        }
-        this.status(`Warming up ${numTests} tests...`);
         const duration = 250 / numTests;
         let runs = 0;
         const tests = this.tests;
@@ -46,13 +35,7 @@ export abstract class TestRunner {
                 test.run(duration, runs === 0);
                 await sleep();
             }
-            if (runs === 1) {
-                this.initOutput();
-            }
-            if (runs > 0) {
-                this.updateOutput();
-            }
-            runs++;
+            await this.report(runs++);
         }
     }
 

@@ -80,13 +80,27 @@ Benchmarking... (Press CTRL-C or Q to quit, M to toggle speed display mode)
 
 With the hotkey `M` you can switch between latest and average speed. With `Q` or `Ctrl-C` you can exit the benchmark.
 
+If the console is not interactive (for example when redirecting output into a file) then the benchmark is run 25 times (approximately 7 seconds) and the average result is printed once:
+
+```text
+$ node benchmark-clear-array.js > result.txt
+$ cat result.txt
+╔═════════════════════╤════════════════════════════════════════════════════════╗
+║ Test                │ Speed (Average)                      123,635,798 ops/s ║
+╟─────────────────────┼─────────┬──────────────────────────────────────────────╢
+║ Set length to 0     │  24.8 % │ ■■■■■■■■■■■                                  ║
+║ Set new empty array │ 100.0 % │ ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ ║
+║ Call splice         │  58.4 % │ ■■■■■■■■■■■■■■■■■■■■■■■■■■                   ║
+╚═════════════════════╧═════════╧══════════════════════════════════════════════╝
+```
+
 
 ## Running in browser
 
 There are multiple ways to run the benchmark in a browser:
 
 * If your project already has a mechanism to bundle and publish a website (With Vite or Webpack for example) then just import the benchmark test script in your web page and open it in a browser. It will then constantly run the tests and output the results in the browser.
-* If you have a local webserver which can serve your projects via HTTP (like Apache with a `public_html` directory) then you can write a HTML file which defines an [ESM import map] to load dependencies like `@kayahr/benchmark` and other dependencies needed by your benchmark tests and then load the benchmark test script as an ES module:
+* If you have a local webserver which can serve your projects via HTTP (like Apache with a `public_html` directory) then you can write a HTML file which defines an [ESM import map] to load dependencies like `@kayahr/benchmark` and other dependencies needed by your benchmark tests and then load the benchmark test script as an ES module at the place where your want the output to appear:
 
     ```html
     <!DOCTYPE html>

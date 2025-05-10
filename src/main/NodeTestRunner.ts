@@ -3,7 +3,6 @@
  * See LICENSE.md for licensing information
  */
 
-import { Test } from "./Test.js";
 import { TestRunner } from "./TestRunner.js";
 
 /** The width of the rendered table. */
@@ -19,68 +18,45 @@ const maxTitleLen = 30;
  * Node.js implementation of a benchmark test runner rendering the benchmark results with ANSI sequences on the console.
  */
 export class NodeTestRunner extends TestRunner {
-    private titleLen: number | null = null;
-    private titles: string[] | null = null;
-
     /** @inheritDoc */
-    public override addTest(test: Test): this {
-        this.titles = null;
-        this.titleLen = null;
-        return super.addTest(test);
-    }
+    protected override report(runs: number): void {
+        const isTTY = process.stdout.isTTY;
+        const tests = this.tests;
+        const numTests = tests.length;
+        if (isTTY && runs === 0) {
+            console.log(`Warming up ${numTests} tests...`);
+        } else {
+            if (isTTY) {
+                // Move cursor to first line of output to overwrite previous output
+                console.log(`\u001B[${runs === 1 ? 2 : (numTests + 6)}A`);
+            } else if (runs < 25) {
+                // In non-interactive mode do nothing for the first 25 runs
+                return;
+            }
+            const titleLen = Math.min(tests.reduce((titleLen, test) => Math.max(test.getName().length, titleLen), minTitleLen), maxTitleLen);
+            const fastest = tests.reduce((fastestSpeed, test) => Math.max(fastestSpeed, this.showAverage ? test.getAverageSpeed() : test.getSpeed()), 0);
+            const fastestStr = (new Intl.NumberFormat("en-US").format(Math.round(fastest)) + " ops/s").padStart(tableWidth - titleLen - 22);
+            const maxBarLen = tableWidth - titleLen - 17;
+            console.log(`╔${"═".repeat(titleLen + 2)}╤${"═".repeat(tableWidth - titleLen - 5)}╗`);
+            console.log(`║ ${"Test".padEnd(titleLen)} │ Speed ${this.showAverage ? "(Average)" : "(Latest) "}${fastestStr} ║`);
+            console.log(`╟${"─".repeat(titleLen + 2)}┼─────────┬${"─".repeat(tableWidth - titleLen - 15)}╢`);
+            for (const test of tests) {
+                const speed = this.showAverage ? test.getAverageSpeed() : test.getSpeed();
+                const percent = speed === 0 ? 0 : Math.min(100, 100 * speed / fastest);
+                const barLen = maxBarLen * percent / 100;
+                const roundedBarLen = Math.round(barLen);
+                const bar = ("■".repeat(roundedBarLen));
+                console.log(`║ ${test.getName().padEnd(titleLen)} │ ${percent.toFixed(1).padStart(5)} % │ ${bar.padEnd(maxBarLen)} ║`);
+            }
+            console.log(`╚${"═".repeat(titleLen + 2)}╧═════════╧${"═".repeat(tableWidth - titleLen - 15)}╝`);
 
-    /** @inheritDoc */
-    private getTitles(): string[] {
-        return this.titles ??= this.tests.map(test => test.getName())
-            .map(title => title.length > maxTitleLen ? (title.substring(0, maxTitleLen - 1) + "…") : title);
-    }
-
-    /** @inheritDoc */
-    private getTitleLen(): number {
-        return this.titleLen ??= this.getTitles().reduce((titleLen, title) => Math.max(title.length, titleLen), minTitleLen);
-    }
-
-    /** @inheritDoc */
-    protected override error(message: string): void {
-        console.error(message);
-    }
-
-    /** @inheritDoc */
-    protected override status(message: string): void {
-        console.log(message);
-    }
-
-    /** @inheritDoc */
-    protected initOutput(): void {
-        const titles = this.getTitles();
-        const titleLen = this.getTitleLen();
-        console.log("\u001B[2A");
-        console.log(`╔${"═".repeat(titleLen + 2)}╤${"═".repeat(tableWidth - titleLen - 5)}╗`);
-        console.log(`║ ${"Test".padEnd(titleLen)} │ Speed${" ".repeat(tableWidth - titleLen - 11)}║`);
-        console.log("╟" + "─".repeat(titleLen + 2) + "┼─────────┬" + "─".repeat(tableWidth - titleLen - 15) + "╢");
-        for (const title of titles) {
-            console.log("║ " + title.padEnd(titleLen) + " │         │" + " ".repeat(tableWidth - titleLen - 15) + "║");
+            if (isTTY) {
+                console.log("Benchmarking... (Press CTRL-C or Q to quit, M to toggle speed display mode)");
+            } else {
+                // In non-interactive mode exit after report
+                this.stop();
+            }
         }
-        console.log("╚" + "═".repeat(titleLen + 2) + "╧═════════╧" + "═".repeat(tableWidth - titleLen - 15) + "╝");
-        console.log("Benchmarking... (Press CTRL-C or Q to quit, M to toggle speed display mode)");
-    }
-
-    /** @inheritDoc */
-    protected override updateOutput(): void {
-        const fastestSpeed = this.tests.reduce((fastestSpeed, test) => Math.max(fastestSpeed, this.showAverage ? test.getAverageSpeed() : test.getSpeed()), 0);
-        const titleLen = this.getTitleLen();
-        const fastestSpeedStr = (new Intl.NumberFormat("en-US").format(Math.round(fastestSpeed)) + " ops/s").padStart(tableWidth - titleLen - 22);
-        console.log(`\u001B[${this.tests.length + 4}A\u001B[${titleLen + 11}C${this.showAverage ? "(Average)" : "(Latest) "}${fastestSpeedStr}\n`);
-        const maxBarLen = tableWidth - titleLen - 17;
-        for (const test of this.tests) {
-            const speed = this.showAverage ? test.getAverageSpeed() : test.getSpeed();
-            const percent = speed === 0 ? 0 : Math.min(100, 100 * speed / fastestSpeed);
-            const barLen = maxBarLen * percent / 100;
-            const roundedBarLen = Math.round(barLen);
-            const bar = ("■".repeat(roundedBarLen));
-            console.log(`\u001B[${this.getTitleLen() + 5}C${percent.toFixed(1).padStart(5)} %\u001B[3C\u001B[3m${bar.padEnd(maxBarLen)}\u001B[0m`);
-        }
-        console.log("\n");
     }
 
     private async registerKeypressListener(): Promise<() => void> {
@@ -106,6 +82,7 @@ export class NodeTestRunner extends TestRunner {
         };
     }
 
+    /** @inheritDoc */
     public override async run(): Promise<void> {
         if (process.stdout.isTTY) {
             const unregisterKeypressListener = await this.registerKeypressListener();
@@ -113,7 +90,9 @@ export class NodeTestRunner extends TestRunner {
             unregisterKeypressListener();
             console.log(`\u001B[1A\u001B[KExiting...`);
         } else {
-            console.log("TODO Implement non-interactive mode");
+            // In non-interactive mode always use average speeds
+            this.showAverage = true;
+            await super.run();
         }
     }
 }
