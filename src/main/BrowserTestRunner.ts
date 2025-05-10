@@ -15,7 +15,7 @@ const template = `
     table {
       box-sizing: border-box;
       width: 100%;
-      margin: 0px;
+      margin: 0;
       padding: 0;
       border: solid 1px black;
       border-collapse: collapse;
@@ -24,6 +24,9 @@ const template = `
       border-left: solid 1px black;
       text-align: start;
       text-wrap: nowrap;
+    }
+    td:first-child, th:first-child {
+      border-left: 0;
     }
     th {
       border-bottom: solid 1px black;
@@ -52,26 +55,37 @@ const template = `
     #speed {
         float: right;
     }
+    #controls, #warmup, #table {
+      display: none;
+    }
+    #benchmark.warmup > #warmup, #benchmark.running > table, #benchmark.stopped > table, #benchmark.running > #controls {
+        display: block;
+    }
   </style>
-  <table id="table">
-    <tr>
-      <th>Test</th>
-      <th colspan="2">Speed (<span id="speed-mode"></span>)<span id="speed"></span></th>
-    </tr>
-    <template id="test">
+  <div id="benchmark" class="warmup">
+    <p id="warmup">
+      Warming up <span id="num-tests"></span> tests...
+    </p>
+    <table id="table">
       <tr>
-        <td class="name"></th>
-        <td class="percent">000.0 %</th>
-        <td class="bar">
-          <div class="bar"><div>
-        </th>
+        <th>Test</th>
+        <th colspan="2">Speed (<span id="speed-mode"></span>)<span id="speed"></span></th>
       </tr>
-    </template>
-  </table>
-  <p id="controls">
-    <button id="stop-button">Stop</button>
-    <button id="toggle-speed-button">Toggle Speed</button>
-  </p>
+      <template id="test">
+        <tr>
+          <td class="name"></th>
+          <td class="percent">000.0 %</th>
+          <td class="bar">
+            <div class="bar"><div>
+          </th>
+        </tr>
+      </template>
+    </table>
+    <p id="controls">
+      <button id="stop-button">Stop</button>
+      <button id="toggle-speed-button">Toggle Speed</button>
+    </p>
+  </div>
 `;
 
 /**
@@ -86,6 +100,7 @@ export class BrowserTestRunner extends TestRunner {
         const container = document.createElement("div");
         const root = container.attachShadow({ mode: "closed" });
         root.innerHTML = template;
+        (root.querySelector("#num-tests") as HTMLSpanElement).textContent = String(this.tests.length);
         (root.querySelector("#speed-mode") as HTMLSpanElement).textContent = this.showAverage ? "Average" : "Latest";
         const testTemplate = root.querySelector("#test") as HTMLTemplateElement;
         const table = root.querySelector("#table") as HTMLTableElement;
@@ -131,12 +146,13 @@ export class BrowserTestRunner extends TestRunner {
             (root.querySelector(`#bar-${index}`) as HTMLTableCellElement).style.width = `${percent.toFixed(1)}%`;
             index++;
         }
+        (root.querySelector("#benchmark") as HTMLDivElement).className = "running";
     }
 
     /** @inheritDoc */
     public override async run(): Promise<void> {
         const root = this.root = await this.createRoot();
         await super.run();
-        root.querySelector("#controls")?.remove();
+        (root.querySelector("#benchmark") as HTMLDivElement).className = "stopped";
     }
 }
