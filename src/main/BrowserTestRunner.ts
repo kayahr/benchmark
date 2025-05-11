@@ -13,10 +13,6 @@ const template = `
       margin: 4px 0 0 0;
     }
     table {
-      box-sizing: border-box;
-      width: 100%;
-      margin: 0;
-      padding: 0;
       border: solid 1px black;
       border-collapse: collapse;
     }
@@ -45,7 +41,7 @@ const template = `
       text-align: end;
     }
     td.bar {
-      width: 100%;
+      width: 256px;
     }
     td.bar > div {
       width: 0;
@@ -58,8 +54,14 @@ const template = `
     #controls, #warmup, #table {
       display: none;
     }
-    #benchmark.warmup > #warmup, #benchmark.running > table, #benchmark.stopped > table, #benchmark.running > #controls {
+    #controls {
+      margin-bottom: 1em;
+    }
+    #benchmark.warmup > #warmup, #benchmark.running > #controls {
         display: block;
+    }
+    #benchmark.stopped > table, #benchmark.running > table {
+        display: inline-block;
     }
   </style>
   <div id="benchmark" class="warmup">

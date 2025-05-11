@@ -5,9 +5,8 @@
 
 import { BrowserTestRunner } from "./BrowserTestRunner.js";
 import { isNode } from "./env.js";
-import { NodeTestRunner } from "./NodeTestRunner.js";
 import { Test, TestInit } from "./Test.js";
-import type { TestRunnerOptions } from "./TestRunner.js";
+import type { TestRunner, TestRunnerOptions } from "./TestRunner.js";
 
 /**
  * Benchmarks the given test operations.
@@ -18,7 +17,14 @@ import type { TestRunnerOptions } from "./TestRunner.js";
  * @param options - Optional test runner options.
  */
 export async function benchmark(tests: TestInit[], options?: TestRunnerOptions): Promise<void> {
-    const runner = isNode() ? new NodeTestRunner(options) : new BrowserTestRunner(options);
+    let runner: TestRunner;
+    if (isNode()) {
+        // Import NodeTestRunner dynamically so no Node.js imports can make any trouble when running in browser
+        const { NodeTestRunner } = await import("./NodeTestRunner.js");
+        runner = new NodeTestRunner(options);
+    } else {
+        runner = new BrowserTestRunner(options);
+    }
     for (const test of tests) {
         runner.addTest(new Test(test));
     }

@@ -3,6 +3,9 @@
  * See LICENSE.md for licensing information
  */
 
+import readline from "node:readline";
+
+import { serve } from "./serve.js";
 import { TestRunner } from "./TestRunner.js";
 
 /** The width of the rendered table. */
@@ -59,9 +62,7 @@ export class NodeTestRunner extends TestRunner {
         }
     }
 
-    private async registerKeypressListener(): Promise<() => void> {
-        const readline = (await import("readline")).default;
-
+    private registerKeypressListener(): () => void {
         const readlineInterface = readline.createInterface({
             input: process.stdin
         });
@@ -84,15 +85,19 @@ export class NodeTestRunner extends TestRunner {
 
     /** @inheritDoc */
     public override async run(): Promise<void> {
-        if (process.stdout.isTTY) {
-            const unregisterKeypressListener = await this.registerKeypressListener();
-            await super.run();
-            unregisterKeypressListener();
-            console.log(`\u001B[1A\u001B[KExiting...`);
+        if (process.argv.includes("--web")) {
+            await serve(process.argv[1]);
         } else {
-            // In non-interactive mode always use average speeds
-            this.showAverage = true;
-            await super.run();
+            if (process.stdout.isTTY) {
+                const unregisterKeypressListener = this.registerKeypressListener();
+                await super.run();
+                unregisterKeypressListener();
+                console.log(`\u001B[1A\u001B[KExiting...`);
+            } else {
+                // In non-interactive mode always use average speeds
+                this.showAverage = true;
+                await super.run();
+            }
         }
     }
 }

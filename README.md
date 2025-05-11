@@ -97,33 +97,44 @@ $ cat result.txt
 
 ## Running in browser
 
-There are multiple ways to run the benchmark in a browser:
+The easiest way is to run the benchmark script with node and the `--web` command line option:
 
-* If your project already has a mechanism to bundle and publish a website (With Vite or Webpack for example) then just import the benchmark test script in your web page and open it in a browser. It will then constantly run the tests and output the results in the browser.
-* If you have a local webserver which can serve your projects via HTTP (like Apache with a `public_html` directory) then you can write a HTML file which defines an [ESM import map] to load dependencies like `@kayahr/benchmark` and other dependencies needed by your benchmark tests and then load the benchmark test script as an ES module at the place where your want the output to appear:
+```text
+$ node benchmark-clear-array.js --web
+Benchmark served on http://localhost:49152/
+Press Ctrl-C to exit
+```
 
-    ```html
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset="UTF-8" />
-        <title>max benchmark</title>
-        <script type="importmap">
-          {
-            "imports": {
-              "@kayahr/benchmark": "./node_modules/@kayahr/benchmark/lib/main/index.js"
-            }
-          }
-        </script>
+And then simply open the given URL in the browser of your choice:
 
-      </head>
-      <body>
-        <script type="module" src="benchmark-max.js"></script>
-      </body>
-    </html>
-    ```
+![screenshot.png](./doc/images/screenshot.png)
+
+This solution is based on [esbuild] to bundle the benchmark script and all its dependencies into a single JavaScript file and starting a simple Node.js HTTP server to serve this JavaScript file together with a minimum HTML index file.
+
+An alternative way is using a local webserver which can serve your projects via HTTP (like Apache with a `public_html` directory) and writing an HTML file which defines an [ESM import map] to load dependencies like `@kayahr/benchmark` and other dependencies needed by your benchmark tests and then load the benchmark test script as an ES module at the place where your want the output to appear:
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>max benchmark</title>
+    <script type="importmap">
+      {
+        "imports": {
+          "@kayahr/benchmark": "./node_modules/@kayahr/benchmark/lib/main/index.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <script type="module" src="benchmark-clear-array.js"></script>
+  </body>
+</html>
+```
 
 [API Doc]: https://kayahr.github.io/benchmark/
 [GitHub]: https://github.com/kayahr/benchmark
 [NPM]: https://www.npmjs.com/package/@kayahr/benchmark
 [ESM import map]: https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/script/type/importmap
+[esbuild]: https://esbuild.github.io/
