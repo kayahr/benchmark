@@ -1,28 +1,63 @@
+/*
+ * Copyright (C) 2025 Klaus Reimer <k@ailis.de>
+ * See LICENSE.md for licensing information
+ */
+
 import { sleep } from "./sleep.js";
 import { Test } from "./Test.js";
 
+/**
+ * Benchmark test runner options.
+ */
 export interface TestRunnerOptions {
     /** Function called before each test iteration. Can be used to init/reset static test data. */
     init?: (() => void) | null;
 }
 
+/**
+ * Benchmark test runner.
+ */
 export abstract class TestRunner {
-    protected running: boolean = false;
-    protected readonly tests: Test[] = [];
-    protected showAverage = false;
     private readonly init: (() => void) | null;
 
+    /** Set to true while tests are running. */
+    protected running: boolean = false;
+
+    /** The tests to run. */
+    protected readonly tests: Test[] = [];
+
+    /** True to show average speed instead of of latest speed. */
+    protected showAverage = false;
+
+    /**
+     * Creates a new test runner with the given options.
+     *
+     * @param options - The test runner options.
+     */
     public constructor({ init = null }: TestRunnerOptions = {}) {
         this.init = init;
     }
 
+    /**
+     * Adds benchmark test to this runner.
+     *
+     * @param test - The benchmark test to add.
+     */
     public addTest(test: Test): this {
         this.tests.push(test);
         return this;
     }
 
+    /**
+     * Renders the benchmark report.
+     *
+     * @param runs - The number of times the benchmark was run up to now.
+     */
     protected abstract report(runs: number): Promise<void> | void;
 
+    /**
+     * Runs the benchmark continuously until {@link stop} is called.
+     */
     public async run(): Promise<void> {
         const numTests = this.tests.length;
         const duration = 250 / numTests;
@@ -39,6 +74,9 @@ export abstract class TestRunner {
         }
     }
 
+    /**
+     * Stops benchmarking.
+     */
     public stop(): void {
         this.running = false;
     }
