@@ -118,7 +118,7 @@ An alternative way is using a local webserver which can serve your projects via 
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>max benchmark</title>
+    <title>Clear Array Benchmark</title>
     <script type="importmap">
       {
         "imports": {
