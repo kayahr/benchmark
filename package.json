@@ -3,7 +3,7 @@
     "name": "@kayahr/benchmark",
     "version": "0.0.1",
     "type": "module",
-    "description": "",
+    "description": "Simple benchmarking tool for command-line (Node.js) and Web",
     "keywords": [
         "benchmark",
         "node.js",
