@@ -55,11 +55,12 @@ async function startServer(startPort: number, listener: RequestListener): Promis
  * Serves the benchmark script via HTTP.
  *
  * @param benchmarkScript - The benchmark script to serve.
+ * @param port            - The port to listen on. Automatically increased if already occupied. Defaults to 49152.
  */
-export async function serve(benchmarkScript: string): Promise<void> {
+export async function serve(benchmarkScript: string, port = 49152): Promise<void> {
     const scriptUrl = relative(process.cwd(), benchmarkScript).replaceAll("\\", "/");
     const source = await bundle(benchmarkScript);
-    const server = await startServer(49152, function (req, res) {
+    const server = await startServer(port, function (req, res) {
         if (req.url === "/" || req.url === "/index.html") {
             res.writeHead(200, "Found", { "Content-Type": "text/html" });
             res.end(`<!DOCTYPE html>

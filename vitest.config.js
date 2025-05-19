@@ -28,6 +28,7 @@ export default defineConfig(
         },
         coverage: {
             enabled: true,
+            provider: "istanbul",
             reporter: [ "text-summary", "json", "lcov", "clover", "cobertura", "html" ],
             reportsDirectory: "lib/test/coverage",
             include: [ "src/main/**/*.ts" ]

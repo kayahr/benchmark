@@ -45,7 +45,7 @@ export class NodeTestRunner extends TestRunner {
             console.log(`╟${"─".repeat(titleLen + 2)}┼─────────┬${"─".repeat(tableWidth - titleLen - 15)}╢`);
             for (const test of tests) {
                 const speed = this.showAverage ? test.getAverageSpeed() : test.getSpeed();
-                const percent = speed === 0 ? 0 : Math.min(100, 100 * speed / fastest);
+                const percent = Math.min(100, 100 * speed / fastest);
                 const barLen = maxBarLen * percent / 100;
                 const roundedBarLen = Math.round(barLen);
                 const bar = ("■".repeat(roundedBarLen));

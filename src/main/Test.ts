@@ -51,6 +51,13 @@ export class Test<T = unknown> {
     }
 
     /**
+     * @returns The test operation.
+     */
+    public getOperation(): TestOperation {
+        return this.operation;
+    }
+
+    /**
      * @returns The last measured speed in operations per second.
      */
     public getSpeed(): number {
@@ -97,12 +104,11 @@ export class Test<T = unknown> {
     }
 
     /**
-     * Runs the tests for the given duration.
+     * Runs the tests for the given duration. If speed has not been measured before then it is estimated in a warm-up round.
      *
      * @param duration - The test duration in milliseconds.
-     * @param warmup   - Set to true if run for warmup. The average speed is not updated during the warmup phase.
      */
-    public run(duration: number, warmup = false): void {
+    public run(duration: number): void {
         if (this.speed === 0) {
             // Speed is not known yet so constantly measure the time and incrementally update the number of iterations to get a good estimation of speed.
             let iterations = 1;
@@ -114,7 +120,7 @@ export class Test<T = unknown> {
             } while (time < stopTime);
         } else {
             // Run the test with iterations based on the last measured speed. After 10 measurements use the average speed
-            this.runLoop((this.measurements > 10 ? this.averageSpeed : this.speed) * duration / 1000, warmup);
+            this.runLoop((this.measurements > 10 ? this.averageSpeed : this.speed) * duration / 1000, false);
         }
     }
 }

@@ -100,7 +100,7 @@ export class BrowserTestRunner extends TestRunner {
 
     private async createRoot(): Promise<ShadowRoot> {
         const container = document.createElement("div");
-        const root = container.attachShadow({ mode: "closed" });
+        const root = container.attachShadow({ mode: "open" });
         root.innerHTML = template;
         (root.querySelector("#num-tests") as HTMLSpanElement).textContent = String(this.tests.length);
         (root.querySelector("#speed-mode") as HTMLSpanElement).textContent = this.showAverage ? "Average" : "Latest";
@@ -132,11 +132,9 @@ export class BrowserTestRunner extends TestRunner {
 
     /** @inheritDoc */
     protected report(): void {
-        const root = this.root;
-        if (root == null) {
-            return;
-        }
-        const fastestSpeed = this.tests.reduce((fastestSpeed, test) => Math.max(fastestSpeed, this.showAverage ? test.getAverageSpeed() : test.getSpeed()), 0);
+        const root = this.root as ShadowRoot;
+        const fastestSpeed = this.tests.reduce((fastestSpeed, test) =>
+            Math.max(fastestSpeed, this.showAverage ? test.getAverageSpeed() : test.getSpeed()), 0);
         (root.querySelector("#speed-mode") as HTMLSpanElement).textContent = this.showAverage ? "Average" : "Latest";
         (root.querySelector("#speed") as HTMLSpanElement).textContent = new Intl.NumberFormat("en-US").format(Math.round(fastestSpeed)) + " ops/s";
 

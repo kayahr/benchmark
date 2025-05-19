@@ -76,7 +76,7 @@ export abstract class TestRunner {
         while (this.running && runs < this.runs) {
             for (const test of tests) {
                 this.init?.();
-                test.run(duration, runs === 0);
+                test.run(duration);
                 await sleep();
             }
             await this.report(runs++);
