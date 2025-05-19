@@ -14,14 +14,14 @@ npm install -D @kayahr/benchmark
 
 ## Writing a benchmark test
 
-This is an example to benchmark the speed of `Math.max` compared to a manual tertiary expression:
+This is an example to benchmark the speed of `Math.max` compared to a manual conditional expression:
 
 ```js
 import { benchmark } from "@kayahr/benchmark";
 
 await benchmark([
     { name: "Math.max", operation: (a, b) => Math.max(a, b) },
-    { name: "Tertiary", operation: (a, b) => (a > b) ? a : b }
+    { name: "Conditional", operation: (a, b) => (a > b) ? a : b }
 ]);
 ```
 

@@ -13,7 +13,6 @@ export async function getCurrentScript(): Promise<HTMLScriptElement | null> {
             for (const script of scripts) {
                 script.removeEventListener("load", onload, false);
             }
-            console.log("Resolved");
             resolve(event.target as HTMLScriptElement);
         };
         for (const script of scripts) {

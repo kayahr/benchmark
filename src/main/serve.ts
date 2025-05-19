@@ -72,8 +72,13 @@ export async function serve(benchmarkScript: string): Promise<void> {
                </html>
             `);
         } else if (req.url === `/${scriptUrl}`) {
-            res.writeHead(200, "Found", { "Content-Type": "application/javascript" });
+            res.writeHead(200, { "Content-Type": "application/javascript" });
             res.end(source);
+        } else if (req.url === `/exit` && req.method === "POST") {
+            res.writeHead(200, { "Content-Type": "text/plain" });
+            res.end("Exiting");
+            res.destroy();
+            server.close();
         } else {
             res.writeHead(404, "Not Found");
             res.end("Not Found");

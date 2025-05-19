@@ -5,7 +5,8 @@ export default [
     {
         ignores: [
             "doc",
-            "lib"
+            "lib",
+            "src/sandbox"
         ]
     },
     {
