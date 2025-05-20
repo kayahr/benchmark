@@ -53,5 +53,26 @@ describe("Test", () => {
                 expect(test.getLastResult()).toBe(lastResult);
             }
         });
+        it("calls operation functions with two numeric entropy integers", () => {
+            let expectedA = 0;
+            const test = new Test({
+                name: "",
+                operation: (a, b) => {
+                    expect(a).toBeGreaterThanOrEqual(0);
+                    expect(a).toBe(Math.round(a));
+                    expect(b).toBeGreaterThanOrEqual(0);
+                    expect(b).toBe(Math.round(b));
+                    expect(a).toBeLessThan(b);
+                    expect(a).toBe(expectedA);
+                    if (a === b - 1) {
+                        expectedA = 0;
+                    } else {
+                        expectedA++;
+                    }
+                    return 0;
+                }
+            });
+            test.run(5);
+        });
     });
 });
