@@ -3,11 +3,12 @@
  * See LICENSE.md for licensing information
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, it } from "node:test";
 
-import { benchmark } from "../main/benchmark.js";
-import { sleep } from "../main/sleep.js";
-import type { TestInit } from "../main/Test.js";
+import { benchmark } from "../main/benchmark.ts";
+import { sleep } from "../main/sleep.ts";
+import type { TestInit } from "../main/Test.ts";
+import { assertContain, assertGreaterThan, assertMatch, assertNotContain, assertSame } from "@kayahr/assert";
 
 const tests: TestInit[] = [
     { name: "Add", operation: (a, b) => a + b },
@@ -21,7 +22,7 @@ describe("benchmark", () => {
 
     beforeEach(() => {
         listeners = [];
-        console.log = text => output += text + "\n";
+        console.log = text => { output += `${text}\n`; };
         output = "";
     });
 
@@ -72,26 +73,26 @@ describe("benchmark", () => {
     it("Shows latest speed in HTML document", async () => {
         await emulateTTY(async () => {
             await benchmark(tests, { runs: 2 });
-            expect(output).toContain("║ Test     │");
-            expect(output).toContain("║ Add      │");
-            expect(output).toContain("│ Speed (Latest) ");
+            assertContain(output, "║ Test     │");
+            assertContain(output, "║ Add      │");
+            assertContain(output, "│ Speed (Latest) ");
         });
     });
 
     it("Shows average speed in HTML document when defined as option", async () => {
         await emulateTTY(async () => {
             await benchmark(tests, { runs: 2, showAverage: true });
-            expect(output).toContain("║ Test     │");
-            expect(output).toContain("║ Add      │");
-            expect(output).toContain("│ Speed (Average) ");
+            assertContain(output, "║ Test     │");
+            assertContain(output, "║ Add      │");
+            assertContain(output, "│ Speed (Average) ");
         });
     });
 
-    it("calls given init function before each run", async () => {
+    it("calls given init function before each run", async (context) => {
         await emulateTTY(async () => {
-            const init = vi.fn();
+            const init = context.mock.fn();
             await benchmark(tests, { runs: 1, init });
-            expect(init).toHaveBeenCalled();
+            assertGreaterThan(init.mock.callCount(), 0);
         });
     });
 
@@ -135,38 +136,38 @@ describe("benchmark", () => {
         });
     });
 
-    it("outputs a single benchmark result with average speed after 25 tries when not running in TTY", { timeout: 20000 }, async () => {
+    it("outputs a single benchmark result with average speed after 25 tries when not running in TTY", { timeout: 20_000 }, async () => {
         await benchmark(tests);
-        expect(output).toContain("║ Test     │");
-        expect(output).toContain("║ Add      │");
-        expect(output).toContain("│ Speed (Average) ");
-        expect(output).not.toContain("Benchmarking...");
-        expect(output).not.toContain("Warming up");
+        assertContain(output, "║ Test     │");
+        assertContain(output, "║ Add      │");
+        assertContain(output, "│ Speed (Average) ");
+        assertNotContain(output, "Benchmarking...");
+        assertNotContain(output, "Warming up");
     });
 
-    it("provides web-based benchmark when --web parameter is used", async () => {
-        vi.spyOn(process, "argv", "get").mockReturnValue([ "node", "src/test/data/test.js", "--web" ]);
+    it("provides web-based benchmark when --web parameter is used", async (context) => {
+        context.mock.property(process, "argv", [ "node", "src/test/data/test.js", "--web" ]);
         const promise = benchmark(tests);
         await expectOutput("Benchmark served");
-        expect(output).toMatch(/^Benchmark served on http:\/\/localhost:\d+\/\nPress Ctrl-C to exit\n$/);
+        assertMatch(output, /^Benchmark served on http:\/\/localhost:\d+\/\nPress Ctrl-C to exit\n$/);
         const url = output.split("\n")[0].substring(20).trim();
 
         // Test index.html
         const index = await (await fetch(url)).text();
-        expect(index).toContain('<script type="module" src="src/test/data/test.js"></script>');
+        assertContain(index, '<script type="module" src="src/test/data/test.js"></script>');
 
         // Test JS bundle
         const script = await (await fetch(`${url}src/test/data/test.js`)).text();
-        expect(script).toContain("console.log(benchmark)");
-        expect(script).toContain("BrowserTestRunner");
+        assertContain(script, "console.log(benchmark)");
+        assertContain(script, "BrowserTestRunner");
 
         // Test JS bundle
         const response = await fetch(`${url}not-there.txt`);
-        expect(response.status).toBe(404);
-        expect(response.statusText).toBe("Not Found");
+        assertSame(response.status, 404);
+        assertSame(response.statusText, "Not Found");
 
         // Exit server
-        expect(await (await fetch(`${url}exit`, { method: "POST" })).text()).toBe("Exiting");
+        assertSame(await (await fetch(`${url}exit`, { method: "POST" })).text(), "Exiting");
         await promise;
     });
 });

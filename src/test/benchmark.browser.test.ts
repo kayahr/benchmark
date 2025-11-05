@@ -3,11 +3,13 @@
  * See LICENSE.md for licensing information
  */
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { before, beforeEach, describe, it } from "node:test";
 
-import { benchmark } from "../main/benchmark.js";
-import { sleep } from "../main/sleep.js";
-import type { TestInit } from "../main/Test.js";
+import { benchmark } from "../main/benchmark.ts";
+import { sleep } from "../main/sleep.ts";
+import type { TestInit } from "../main/Test.ts";
+import { assertContain, assertGreaterThan, assertSame } from "@kayahr/assert";
+import { installDOM } from "./utils.ts";
 
 async function getElement(id: string): Promise<HTMLElement> {
     while (true) {
@@ -38,6 +40,10 @@ const tests: TestInit[] = [
 ];
 
 describe("benchmark", () => {
+    before(() => {
+        installDOM();
+    });
+
     beforeEach(() => {
         document.body.innerHTML = "";
     });
@@ -45,23 +51,23 @@ describe("benchmark", () => {
     it("Shows latest speed in HTML document", async () => {
         await benchmark(tests, { runs: 1 });
         const output = getOutput();
-        expect(output).toContain(`<td class="name">Add</td>`);
-        expect(output).toContain(`<td class="name">Multiply</td>`);
-        expect(output).toContain(`<span id="speed-mode">Latest</span>`);
+        assertContain(output, `<td class="name">Add</td>`);
+        assertContain(output, `<td class="name">Multiply</td>`);
+        assertContain(output, `<span id="speed-mode">Latest</span>`);
     });
 
     it("Shows average speed in HTML document when defined as option", async () => {
         await benchmark(tests, { runs: 1, showAverage: true });
         const output = getOutput();
-        expect(output).toContain(`<td class="name">Add</td>`);
-        expect(output).toContain(`<td class="name">Multiply</td>`);
-        expect(output).toContain(`<span id="speed-mode">Average</span>`);
+        assertContain(output, `<td class="name">Add</td>`);
+        assertContain(output, `<td class="name">Multiply</td>`);
+        assertContain(output, `<span id="speed-mode">Average</span>`);
     });
 
-    it("calls given init function before each run", async () => {
-        const init = vi.fn();
+    it("calls given init function before each run", async (context) => {
+        const init = context.mock.fn();
         await benchmark(tests, { runs: 1, init });
-        expect(init).toHaveBeenCalled();
+        assertGreaterThan(init.mock.callCount(), 0);
     });
 
     it("provides button to switch speed mode", async () => {
@@ -86,7 +92,8 @@ describe("benchmark", () => {
         body.appendChild(document.createTextNode("Before"));
         body.appendChild(fakeScript);
         body.appendChild(document.createTextNode("After"));
+        await sleep(0); // Necessary for happy-dom to ensure mutation observer handled the fakeScript insertion before adding the benchmark
         await benchmark(tests, { runs: 1 });
-        expect(document.body.innerHTML).toBe("Before<script></script><div></div>After");
+        assertSame(document.body.innerHTML, "Before<script></script><div></div>After");
     });
 });

@@ -3,17 +3,18 @@
  * See LICENSE.md for licensing information
  */
 
-import { describe, expect, it } from "vitest";
+import { describe, it } from "node:test";
 
-import { benchmark } from "../main/benchmark.js";
-import * as exports from "../main/index.js";
-import { type TestInit, type TestOperation } from "../main/Test.js";
-import { type TestRunnerOptions } from "../main/TestRunner.js";
+import { benchmark } from "../main/benchmark.ts";
+import * as exports from "../main/index.ts";
+import type { TestInit, TestOperation } from "../main/Test.ts";
+import type { TestRunnerOptions } from "../main/TestRunner.ts";
+import { assertEquals } from "@kayahr/assert";
 
 describe("index", () => {
     it("exports relevant types and functions and nothing more", () => {
         // Check classes and enums
-        expect({ ...exports }).toEqual({
+        assertEquals({ ...exports }, {
             benchmark
         });
 

@@ -3,19 +3,19 @@
  * See LICENSE.md for licensing information
  */
 
-import { describe, expect, it, vi } from "vitest";
+import { describe, it, mock } from "node:test";
 
-import { sleep } from "../main/sleep.js";
+import { sleep } from "../main/sleep.ts";
 
 describe("sleep", () => {
     it("sleeps for given number of milliseconds", async () => {
-        vi.useFakeTimers({ toFake: [ "setTimeout" ] });
+        mock.timers.enable({ apis: [ "setTimeout" ] });
         try {
-            const promise = sleep(10000);
-            vi.advanceTimersByTime(10000);
-            await expect(promise).resolves.toBeUndefined();
+            const promise = sleep(10_000);
+            mock.timers.tick(10_000);
+            await promise;
         } finally {
-            vi.useRealTimers();
+            mock.timers.reset();
         }
     });
 });

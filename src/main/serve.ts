@@ -3,8 +3,8 @@
  * See LICENSE.md for licensing information
  */
 
-import { createServer, type RequestListener, type Server } from "node:http";
-import { type AddressInfo } from "node:net";
+import { type RequestListener, type Server, createServer } from "node:http";
+import type { AddressInfo } from "node:net";
 import { relative } from "node:path";
 
 import esbuild from "esbuild";
@@ -40,7 +40,7 @@ async function startServer(startPort: number, listener: RequestListener): Promis
         const server = createServer(listener).listen(startPort);
         server.on("error", (e: NodeJS.ErrnoException) => {
             if (e.code === "EADDRINUSE") {
-                startServer(startPort + 1, listener).then(resolve, reject);
+                startServer(startPort + 1, listener).then(resolve).catch(reject);
             } else {
                 reject(e);
             }
@@ -57,10 +57,10 @@ async function startServer(startPort: number, listener: RequestListener): Promis
  * @param benchmarkScript - The benchmark script to serve.
  * @param port            - The port to listen on. Automatically increased if already occupied. Defaults to 49152.
  */
-export async function serve(benchmarkScript: string, port = 49152): Promise<void> {
+export async function serve(benchmarkScript: string, port = 49_152): Promise<void> {
     const scriptUrl = relative(process.cwd(), benchmarkScript).replaceAll("\\", "/");
     const source = await bundle(benchmarkScript);
-    const server = await startServer(port, function (req, res) {
+    const server = await startServer(port, (req, res) => {
         if (req.url === "/" || req.url === "/index.html") {
             res.writeHead(200, "Found", { "Content-Type": "text/html" });
             res.end(`<!DOCTYPE html>

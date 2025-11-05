@@ -3,12 +3,13 @@
  * See LICENSE.md for licensing information
  */
 
-import { describe, expect, it } from "vitest";
+import { describe, it } from "node:test";
 
-import { isNode } from "../main/env.js";
+import { isNode } from "../main/env.ts";
+import { assertSame } from "@kayahr/assert";
 
 describe("isNode", () => {
     it("returns true on Node.js", () => {
-        expect(isNode()).toBe(true);
+        assertSame(isNode(), true);
     });
 });

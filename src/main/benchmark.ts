@@ -3,10 +3,10 @@
  * See LICENSE.md for licensing information
  */
 
-import { BrowserTestRunner } from "./BrowserTestRunner.js";
-import { isNode } from "./env.js";
-import { Test, TestInit } from "./Test.js";
-import type { TestRunner, TestRunnerOptions } from "./TestRunner.js";
+import { BrowserTestRunner } from "./BrowserTestRunner.ts";
+import { isNode } from "./env.ts";
+import { Test, type TestInit } from "./Test.ts";
+import type { TestRunner, TestRunnerOptions } from "./TestRunner.ts";
 
 /**
  * Benchmarks the given test operations.
@@ -20,7 +20,7 @@ export async function benchmark(tests: TestInit[], options?: TestRunnerOptions):
     let runner: TestRunner;
     if (isNode()) {
         // Import NodeTestRunner dynamically so no Node.js imports can make any trouble when running in browser
-        const { NodeTestRunner } = await import("./NodeTestRunner.js");
+        const { NodeTestRunner } = await import("./NodeTestRunner.ts");
         runner = new NodeTestRunner(options);
     } else {
         runner = new BrowserTestRunner(options);

@@ -8,8 +8,12 @@
  */
 export async function getCurrentScript(): Promise<HTMLScriptElement | null> {
     return new Promise(resolve => {
+        // Give up after 100ms
+        const timeout = setTimeout(() => resolve(null), 100);
+
         const scripts = Array.from(document.scripts);
         const onload = (event: Event) => {
+            clearTimeout(timeout);
             for (const script of scripts) {
                 script.removeEventListener("load", onload, false);
             }
@@ -19,7 +23,5 @@ export async function getCurrentScript(): Promise<HTMLScriptElement | null> {
             script.addEventListener("load", onload, false);
         }
 
-        // Give up after 100ms
-        setTimeout(() => resolve(null), 100);
     });
 }

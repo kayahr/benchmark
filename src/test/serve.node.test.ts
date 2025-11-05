@@ -3,70 +3,70 @@
  * See LICENSE.md for licensing information
  */
 
-import "@kayahr/vitest-matchers";
 
-import { describe, expect, it, vi } from "vitest";
+import { describe, it } from "node:test";
 
-import { serve } from "../main/serve.js";
+import { serve } from "../main/serve.ts";
+import { assertContain, assertMatch, assertNotSame, assertSame, assertThrowWithMessage } from "@kayahr/assert";
 
 describe("serve", () => {
-    it("serves an entrypoint", async () => {
-        const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    it("serves an entrypoint", async (context) => {
+        const log = context.mock.method(console, "log", () => {});
         await serve("src/test/data/test.js");
-        expect(log).toHaveBeenCalledTimes(2);
-        expect(log.mock.calls[0][0]).toMatch(/^Benchmark served on http:\/\/localhost:\d+\/$/);
-        expect(log.mock.calls[1][0]).toBe("Press Ctrl-C to exit");
-        const url = (log.mock.calls[0][0] as string).substring(20);
-        expect(url).toMatch(/^http:\/\/localhost:\d+\/$/);
-        log.mockRestore();
+        assertSame(log.mock.callCount(), 2);
+        assertMatch(log.mock.calls[0].arguments[0], /^Benchmark served on http:\/\/localhost:\d+\/$/);
+        assertSame(log.mock.calls[1].arguments[0], "Press Ctrl-C to exit");
+        const url = (log.mock.calls[0].arguments[0] as string).substring(20);
+        assertMatch(url, /^http:\/\/localhost:\d+\/$/);
+        log.mock.restore();
 
         // Test index.html
         const index = await (await fetch(url)).text();
-        expect(index).toContain('<script type="module" src="src/test/data/test.js"></script>');
+        assertContain(index, '<script type="module" src="src/test/data/test.js"></script>');
 
         // Test JS bundle
         const script = await (await fetch(`${url}src/test/data/test.js`)).text();
-        expect(script).toContain("console.log(benchmark)");
-        expect(script).toContain("BrowserTestRunner");
+        assertContain(script, "console.log(benchmark)");
+        assertContain(script, "BrowserTestRunner");
 
         // Test JS bundle
         const response = await fetch(`${url}not-there.txt`);
-        expect(response.status).toBe(404);
-        expect(response.statusText).toBe("Not Found");
+        assertSame(response.status, 404);
+        assertSame(response.statusText, "Not Found");
 
         // Exit server
         const exiting = await (await fetch(`${url}exit`, { method: "POST" })).text();
-        expect(exiting).toBe("Exiting");
+        assertSame(exiting, "Exiting");
     });
-    it("automatically increases port number if port is already used", async () => {
-        const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    it("automatically increases port number if port is already used", async (context) => {
+        const log = context.mock.method(console, "log", () => {});
         await serve("src/test/data/test.js");
-        expect(log.mock.calls[0][0]).toMatch(/^Benchmark served on http:\/\/localhost:\d+\/$/);
-        const url1 = (log.mock.calls[0][0] as string).substring(20);
-        log.mockClear();
+        assertMatch(log.mock.calls[0].arguments[0], /^Benchmark served on http:\/\/localhost:\d+\/$/);
+        const url1 = (log.mock.calls[0].arguments[0] as string).substring(20);
+        log.mock.resetCalls();
 
         await serve("src/test/data/test.js");
-        expect(log.mock.calls[0][0]).toMatch(/^Benchmark served on http:\/\/localhost:\d+\/$/);
-        const url2 = (log.mock.calls[0][0] as string).substring(20);
-        expect(url1).not.toBe(url2);
-        log.mockRestore();
+        assertMatch(log.mock.calls[0].arguments[0], /^Benchmark served on http:\/\/localhost:\d+\/$/);
+        const url2 = (log.mock.calls[0].arguments[0] as string).substring(20);
+        assertNotSame(url1, url2);
+        log.mock.restore();
 
         // Test JS bundle
         const script = await (await fetch(`${url2}src/test/data/test.js`)).text();
-        expect(script).toContain("console.log(benchmark)");
-        expect(script).toContain("BrowserTestRunner");
+        assertContain(script, "console.log(benchmark)");
+        assertContain(script, "BrowserTestRunner");
 
         // Exit both servers
-        expect(await (await fetch(`${url1}exit`, { method: "POST" })).text()).toBe("Exiting");
-        expect(await (await fetch(`${url2}exit`, { method: "POST" })).text()).toBe("Exiting");
+        assertSame(await (await fetch(`${url1}exit`, { method: "POST" })).text(), "Exiting");
+        assertSame(await (await fetch(`${url2}exit`, { method: "POST" })).text(), "Exiting");
     });
     it("rejects if port is out of range", async () => {
-        await expect(serve("src/test/data/test.js", 65536)).rejects.toThrowWithMessage(RangeError,
+        await assertThrowWithMessage(() => serve("src/test/data/test.js", 65_536), RangeError,
             "options.port should be >= 0 and < 65536. Received type number (65536).");
     });
     if (process.getuid != null && process.getuid() > 0) {
         it("rejects if port cannot be opened", async () => {
-            await expect(serve("src/test/data/test.js", 22)).rejects.toThrowWithMessage(Error,
+            await assertThrowWithMessage(() => serve("src/test/data/test.js", 22), Error,
                 "listen EACCES: permission denied 0.0.0.0:22");
         });
     }

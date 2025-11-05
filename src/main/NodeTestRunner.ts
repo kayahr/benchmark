@@ -5,8 +5,8 @@
 
 import readline from "node:readline";
 
-import { serve } from "./serve.js";
-import { TestRunner } from "./TestRunner.js";
+import { serve } from "./serve.ts";
+import { TestRunner } from "./TestRunner.ts";
 
 /** The width of the rendered table. */
 const tableWidth = 80;
@@ -21,7 +21,7 @@ const maxTitleLen = 30;
  * Node.js implementation of a benchmark test runner rendering the benchmark results with ANSI sequences on the console.
  */
 export class NodeTestRunner extends TestRunner {
-    /** @inheritDoc */
+    /** @inheritdoc */
     protected override report(runs: number): void {
         const isTTY = process.stdout.isTTY;
         const tests = this.tests;
@@ -38,7 +38,7 @@ export class NodeTestRunner extends TestRunner {
             }
             const titleLen = Math.min(tests.reduce((titleLen, test) => Math.max(test.getName().length, titleLen), minTitleLen), maxTitleLen);
             const fastest = tests.reduce((fastestSpeed, test) => Math.max(fastestSpeed, this.showAverage ? test.getAverageSpeed() : test.getSpeed()), 0);
-            const fastestStr = (new Intl.NumberFormat("en-US").format(Math.round(fastest)) + " ops/s").padStart(tableWidth - titleLen - 22);
+            const fastestStr = `${new Intl.NumberFormat("en-US").format(Math.round(fastest))} ops/s`.padStart(tableWidth - titleLen - 22);
             const maxBarLen = tableWidth - titleLen - 17;
             console.log(`╔${"═".repeat(titleLen + 2)}╤${"═".repeat(tableWidth - titleLen - 5)}╗`);
             console.log(`║ ${"Test".padEnd(titleLen)} │ Speed ${this.showAverage ? "(Average)" : "(Latest) "}${fastestStr} ║`);
@@ -83,7 +83,7 @@ export class NodeTestRunner extends TestRunner {
         };
     }
 
-    /** @inheritDoc */
+    /** @inheritdoc */
     public override async run(): Promise<void> {
         if (process.argv.includes("--web")) {
             await serve(process.argv[1]);

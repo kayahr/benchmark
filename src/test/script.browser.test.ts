@@ -3,9 +3,11 @@
  * See LICENSE.md for licensing information
  */
 
-import { describe, expect, it } from "vitest";
+import { before, describe, it } from "node:test";
 
-import { getCurrentScript } from "../main/script.js";
+import { getCurrentScript } from "../main/script.ts";
+import { assertSame } from "@kayahr/assert";
+import { installDOM } from "./utils.ts";
 
 function createDummyScript(id: string, type?: string): HTMLScriptElement {
     const script = document.createElement("script");
@@ -22,11 +24,15 @@ function createDummyScript(id: string, type?: string): HTMLScriptElement {
 }
 
 describe("getCurrentScript", () => {
-    it("returns null when script element can not be determined", async () => {
-        expect(await getCurrentScript()).toBe(null);
+    before(() => {
+        installDOM();
     });
 
-    it("returns script element which loaded the module script", async () => {
+    it("returns null when script element can not be determined", async () => {
+        assertSame(await getCurrentScript(), null);
+    });
+
+    it("returns script element which loaded the module script", { timeout: 2000 }, async () => {
         const script = await new Promise<HTMLScriptElement>((resolve, reject) => {
             // Some script elements before the right one
             document.body.appendChild(createDummyScript("script-1"));
@@ -40,8 +46,11 @@ describe("getCurrentScript", () => {
             const script = document.createElement("script");
             script.id = "test-script";
             script.type = "module";
-            script.onerror = () => reject(new Error("Script execution failed"));
-            script.src = "data:application/javascript,_resolve(await globalThis._getCurrentScript())";
+            script.addEventListener("error", () => {
+                reject(new Error("Script execution failed" ))
+            });
+            script.textContent = "console.log('test'); globalThis._getCurrentScript().then(globalThis._resolve);";
+            // script.src = "data:application/javascript,console.log('test');return true";
             document.body.appendChild(script);
 
             // Some script elements after the right one
@@ -50,6 +59,6 @@ describe("getCurrentScript", () => {
             document.body.appendChild(createDummyScript("script-7", "async"));
             document.body.appendChild(createDummyScript("script-8", "defer"));
         });
-        expect(script.id).toBe("test-script");
+        assertSame(script.id, "test-script");
     });
 });

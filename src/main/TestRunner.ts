@@ -3,8 +3,8 @@
  * See LICENSE.md for licensing information
  */
 
-import { sleep } from "./sleep.js";
-import { Test } from "./Test.js";
+import { sleep } from "./sleep.ts";
+import type { Test } from "./Test.ts";
 
 /**
  * Benchmark test runner options.
@@ -28,7 +28,7 @@ export abstract class TestRunner {
     private readonly runs: number;
 
     /** Set to true while tests are running. */
-    protected running: boolean = false;
+    protected running = false;
 
     /** The tests to run. */
     protected readonly tests: Test[] = [];

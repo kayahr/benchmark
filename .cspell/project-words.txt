@@ -1,5 +1,8 @@
 importmap
 kayahr
 macrotask
+ntest
+oxlint
+registrator
 Reimer
 servedir
