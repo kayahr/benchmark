@@ -86,7 +86,7 @@ describe("benchmark", () => {
 
     it("inserts benchmark report after related script element", async () => {
         const fakeScript = document.createElement("script");
-        // listener is called directly when added to emulate init detection of active script
+        // Listener is called directly when added to emulate init detection of active script
         fakeScript.addEventListener = (type: string, listener: (event: unknown) => void) => listener({ target: fakeScript });
         const body = document.body;
         body.appendChild(document.createTextNode("Before"));

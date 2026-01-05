@@ -50,7 +50,6 @@ describe("getCurrentScript", () => {
                 reject(new Error("Script execution failed" ))
             });
             script.textContent = "console.log('test'); globalThis._getCurrentScript().then(globalThis._resolve);";
-            // script.src = "data:application/javascript,console.log('test');return true";
             document.body.appendChild(script);
 
             // Some script elements after the right one
