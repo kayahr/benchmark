@@ -41,15 +41,15 @@ describe("getCurrentScript", () => {
             document.body.appendChild(createDummyScript("script-4", "defer"));
 
             const global = globalThis as Record<string, unknown>;
-            global._getCurrentScript = getCurrentScript;
-            global._resolve = resolve;
+            global.getCurrentScript = getCurrentScript;
+            global.resolve = resolve;
             const script = document.createElement("script");
             script.id = "test-script";
             script.type = "module";
             script.addEventListener("error", () => {
                 reject(new Error("Script execution failed" ))
             });
-            script.textContent = "console.log('test'); globalThis._getCurrentScript().then(globalThis._resolve);";
+            script.textContent = "console.log('test'); globalThis.getCurrentScript().then(globalThis.resolve);";
             document.body.appendChild(script);
 
             // Some script elements after the right one
