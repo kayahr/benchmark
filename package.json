@@ -48,7 +48,7 @@
         "@kayahr/oxlint-config": "1.38.0",
         "@kayahr/typedoc": "0.28.19-bundle.1",
         "@types/node": "25.9.3",
-        "happy-dom": "20.10.3",
+        "happy-dom": "20.10.6",
         "typescript": "6.0.3"
     },
     "dependencies": {
