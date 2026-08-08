@@ -21,6 +21,6 @@ describe("index", () => {
         // Interfaces and types can only be checked by TypeScript
         ((): TestOperation => (({} as exports.TestOperation)))();
         ((): TestInit => (({} as exports.TestInit)))();
-        ((): TestRunnerOptions => (({} as exports.TestRunnerOptions)))();
+        ((): TestRunnerOptions => ((0 as exports.TestRunnerOptions)))();
     });
 });
